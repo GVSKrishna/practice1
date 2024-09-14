@@ -1,0 +1,177 @@
+#%RAML 1.0
+title: Example API
+
+baseUri: dilberts-farming-equipment.com
+
+securitySchemes:
+  basic:
+    description: |
+      This API supports Basic Authentication.
+    type: Basic Authentication
+
+description: |
+  This API is an example of the sorts of APIs you can have in your system.
+  The API isn't anything special, it just shows what you can do with a database
+  backed little app.
+
+  The scenario for this application is a small company which requires equipment
+  management. There are endpoints to create machinery types, and a way for workers
+  to check out the machinery each day.
+
+/equipment-manager:
+  /auth:
+    post:
+      description: Login to the system. Returns a token to be used as a bearer token for authorization
+      body:
+        application/json:
+          example: |
+            {
+              "username": "Joe Bloggs",
+              "password": "123456789password",
+              "scope": "admin"
+            }
+  /employees:
+    get:
+      description: Return the list of employees
+    post:
+      description: Create a new employee. Requires admin scope token.
+      body:
+        application/json:
+          example: |
+            {
+              "name": "Katie Wilson",
+              "job-title": "Senior Driver",
+              "department": "Logistics",
+              "username": "kwilson",
+              "password": "nosliwk",
+              "role": "employee"
+            }
+      responses:
+        201:
+        400:
+          description: Malformed request
+        401:
+          description: Bad authentication - not allowed to create users.
+
+    /{id}:
+      get:
+        description: Return details about an employee
+        body:
+          application/json:
+            example: |
+              {
+                "name": "Katie Wilson",
+                "job-title": "Senior Driver",
+                "department": "Logistics",
+                "checked-out-equipment": [
+                  11332,
+                  8851,
+                  2241
+                ]
+              }
+        responses:
+          200:
+          404:
+            description: User {id} not found
+      patch:
+        description: Change an employee's details
+        body:
+          application/json:
+            example: |
+              {
+                "job-title": "Logistics Manager"
+              }
+
+  /equipment:
+    get:
+      description: Get the list of equipment
+      body:
+        application/json:
+          example:
+            [
+              {
+                "id": 5532,
+                "is-checked-out": false,
+                "checked-out-to": null,
+                "manufacturer": "Ford",
+                "product": "Transit",
+                "human-readable-identifier": "GK23 FRX"
+              },
+              {
+                "id": 5431,
+                "is-checked-out": true,
+                "manufacturer": "Ford",
+                "checked-out-to": 8899645,
+                "product": "Transit",
+                "human-readable-identifier": "GK23 FRX"
+              }
+            ]
+      responses:
+        200:
+         description: The list of devices
+    post:
+      description: Create a new equipment
+      body:
+        application/json:
+          example: |
+            {
+              "manufacturer": "Ford",
+              "product": "Transit",
+              "human-readable-identifier": "GK23 FRX"
+            }
+      responses:
+        201:
+          description: Equipment created
+        400:
+          description: Request malformed
+    /{id}:
+      uriParameters:
+        id:
+          description: Identifier of the equipment
+          example: "5513"
+      get:
+        description: Get details about a peice of equipment
+        body:
+          application/json:
+            example: |
+              {
+                "id": 5431,
+                "is-checked-out": false,
+                "manufacturer": "Ford",
+                "product": "Transit",
+                "human-readable-identifier": "GK23 FRX"
+              }
+        responses:
+          200:
+            description: Returns the equipment description
+          404:
+            description: Equipment ID not found
+      delete:
+        description: Delete a machine
+        responses:
+          200:
+            description: Equipment not found
+          404:
+            description: Equipment not found
+      patch:
+        description: Change details of the equipment identified by {id}
+        body:
+          application/json:
+            example: |
+              {
+                "manufacturer": "Volkswagen"
+              }
+    /{id}/checkout/{employee-id}:
+      uriParameters:
+        id:
+          description: Identifier of the equipment
+          example: "5513"
+        employee-id:
+          description: Identifier of the employee
+          example: "11223344"
+      put:
+        description: Perform a checkout on a equipment {id} to employee {employee-id}.
+
+    /{id}/return:
+      put:
+        description: Perform a return on a equipment
